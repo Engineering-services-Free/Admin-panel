@@ -1,0 +1,899 @@
+:root {
+  --rte-bg: var(--background);
+  --rte-surface: var(--muted);
+  --rte-surface-hover: var(--accent);
+  --rte-border: var(--border);
+  --rte-border-strong: var(--input);
+  --rte-text: var(--foreground);
+  --rte-muted: var(--muted-foreground);
+  --rte-primary: var(--primary);
+  --rte-primary-soft: var(--accent);
+  --rte-danger: var(--destructive);
+  --rte-focus: var(--ring);
+  --rte-radius: 14px;
+  --rte-shadow: 0 8px 28px rgb(0 0 0 / 8%);
+}
+
+/* =========================================================
+   CONTAINER
+   ========================================================= */
+
+.rte-container {
+  width: 100%;
+  overflow: visible;
+  border: 1px solid var(--rte-border);
+  border-radius: var(--rte-radius);
+  background: var(--rte-bg);
+  color: var(--rte-text);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 4%);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.rte-container:focus-within {
+  border-color: var(--rte-primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--rte-focus) 25%, transparent);
+}
+
+.rte-container.has-error {
+  border-color: var(--rte-danger);
+}
+
+.rte-container.has-error:focus-within {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--rte-danger) 15%, transparent);
+}
+
+.rte-container.is-disabled {
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.rte-container.is-read-only {
+  background: var(--rte-surface);
+}
+
+/* =========================================================
+   LABEL
+   ========================================================= */
+
+.rte-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem 0;
+}
+
+.rte-label {
+  color: var(--rte-text);
+  font-size: 0.875rem;
+  font-weight: 650;
+  line-height: 1.25rem;
+}
+
+.rte-required {
+  margin-left: 0.2rem;
+  color: var(--rte-danger);
+}
+
+.rte-read-only-badge {
+  border: 1px solid var(--rte-border);
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  color: var(--rte-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* =========================================================
+   TOOLBAR
+   ========================================================= */
+
+.rte-toolbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  overflow: visible; 
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--rte-border);
+  background: linear-gradient(
+    180deg,
+    var(--rte-bg) 0%,
+    var(--rte-surface) 100%
+  );
+  scrollbar-width: thin;
+}
+
+.rte-toolbar::-webkit-scrollbar {
+  height: 5px;
+}
+
+.rte-toolbar::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--rte-border-strong);
+}
+
+.rte-toolbar__group {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.2rem;
+  padding-right: 0.5rem;
+  border-right: 1px solid var(--rte-border);
+}
+
+.rte-toolbar__group:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+/* =========================================================
+   TOOLBAR BUTTON
+   ========================================================= */
+
+.rte-toolbar__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  padding: 0 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--rte-text);
+  font-family: inherit;
+  font-size: 0.825rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    transform 150ms ease;
+}
+
+.rte-toolbar__button:hover:not(:disabled) {
+  border-color: var(--rte-border);
+  background: var(--rte-surface-hover);
+}
+
+.rte-toolbar__button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.rte-toolbar__button.is-active {
+  border-color: var(--rte-border);
+  background: var(--rte-primary-soft);
+  color: var(--rte-text);
+}
+
+.rte-toolbar__button:focus-visible,
+.rte-toolbar__select:focus-visible,
+.rte-dialog__input:focus-visible,
+.rte-button:focus-visible,
+.rte-dialog__close:focus-visible,
+.rte-color-picker__trigger:focus-visible,
+.rte-color-picker__swatch:focus-visible,
+.rte-color-picker__reset:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--rte-focus) 35%, transparent);
+  outline-offset: 2px;
+}
+
+.rte-toolbar__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+/* =========================================================
+   STYLE SELECT
+   ========================================================= */
+
+.rte-toolbar__select {
+  height: 2.25rem;
+  min-width: 8.1rem;
+  border: 1px solid var(--rte-border);
+  border-radius: 0.5rem;
+  background: var(--rte-bg);
+  color: var(--rte-text);
+  padding: 0 2rem 0 0.625rem;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rte-toolbar__select:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* =========================================================
+   TEXT COLOR PICKER
+   ========================================================= */
+
+.rte-color-picker {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.rte-color-picker__trigger {
+  position: relative;
+  flex-direction: column;
+  gap: 0.12rem;
+  width: 2.25rem;
+  min-width: 2.25rem;
+  padding: 0.25rem;
+}
+
+.rte-color-picker__letter {
+  display: block;
+  height: 1rem;
+  color: var(--rte-text);
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1rem;
+}
+
+.rte-color-picker__indicator {
+  display: block;
+  width: 1.25rem;
+  height: 0.2rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--rte-border) 70%, transparent);
+}
+
+.rte-color-picker__popover {
+  position: absolute;
+  z-index: 100;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  width: 18rem;
+  padding: 0.75rem;
+  border: 1px solid var(--rte-border);
+  border-radius: 0.75rem;
+  background: var(--rte-bg);
+  box-shadow: 0 14px 40px rgb(0 0 0 / 18%);
+}
+
+.rte-color-picker__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.7rem;
+  color: var(--rte-text);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.rte-color-picker__reset {
+  border: 0;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: var(--rte-muted);
+  padding: 0.25rem 0.4rem;
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rte-color-picker__reset:hover:not(:disabled) {
+  background: var(--rte-surface-hover);
+  color: var(--rte-text);
+}
+
+.rte-color-picker__reset:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+/*
+ * Color grid.
+ *
+ * 8 columns gives a compact editor-friendly palette.
+ */
+.rte-color-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 0.35rem;
+}
+
+/*
+ * Individual color.
+ */
+.rte-color-picker__swatch {
+  position: relative;
+  width: 1.65rem;
+  height: 1.65rem;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--rte-border) 75%, transparent);
+  border-radius: 0.3rem;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.rte-color-picker__swatch:hover {
+  transform: scale(1.12);
+  border-color: var(--rte-text);
+  box-shadow:
+    0 0 0 2px var(--rte-bg),
+    0 0 0 3px var(--rte-border);
+}
+
+.rte-color-picker__swatch.is-selected {
+  border-color: var(--rte-text);
+  box-shadow:
+    0 0 0 2px var(--rte-bg),
+    0 0 0 3px var(--rte-primary);
+}
+
+/*
+ * White color needs a visible border.
+ */
+.rte-color-picker__swatch[style*="rgb(255, 255, 255)"],
+.rte-color-picker__swatch[style*="#ffffff"] {
+  border-color: var(--rte-border-strong);
+}
+
+/* =========================================================
+   EDITOR
+   ========================================================= */
+
+.rte-editor-shell {
+  position: relative;
+  background: var(--rte-bg);
+}
+
+.rte-content {
+  min-height: inherit;
+  padding: 1.25rem;
+  outline: none;
+  text-align: left;
+  color: var(--rte-text);
+  font-size: 0.975rem;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+.rte-content > *:first-child {
+  margin-top: 0;
+}
+
+.rte-content > *:last-child {
+  margin-bottom: 0;
+}
+
+/* =========================================================
+   PARAGRAPHS
+   ========================================================= */
+
+.rte-content p {
+  margin: 0.75rem 0;
+}
+
+/*
+ * Tiptap can generate:
+ *
+ * <li>
+ *   <p>Item</p>
+ * </li>
+ */
+.rte-content li > p {
+  margin: 0;
+}
+
+/* =========================================================
+   HEADINGS
+   ========================================================= */
+
+.rte-content h1,
+.rte-content h2,
+.rte-content h3 {
+  color: var(--rte-text);
+  font-weight: 750;
+  letter-spacing: -0.025em;
+}
+
+.rte-content h1 {
+  margin: 1.4rem 0 0.75rem;
+  font-size: clamp(1.65rem, 4vw, 2.125rem);
+  line-height: 1.15;
+}
+
+.rte-content h2 {
+  margin: 1.25rem 0 0.625rem;
+  font-size: clamp(1.35rem, 3.5vw, 1.65rem);
+  line-height: 1.25;
+}
+
+.rte-content h3 {
+  margin: 1rem 0 0.5rem;
+  font-size: 1.2rem;
+  line-height: 1.35;
+}
+
+/* =========================================================
+   LISTS
+   ========================================================= */
+
+.rte-content ul {
+  display: block;
+  margin: 0.875rem 0;
+  padding-left: 1.75rem;
+  list-style-type: disc;
+}
+
+.rte-content ol {
+  display: block;
+  margin: 0.875rem 0;
+  padding-left: 1.75rem;
+  list-style-type: decimal;
+}
+
+.rte-content ul ul {
+  list-style-type: circle;
+}
+
+.rte-content ul ul ul {
+  list-style-type: square;
+}
+
+.rte-content ol ol {
+  list-style-type: lower-alpha;
+}
+
+.rte-content ol ol ol {
+  list-style-type: lower-roman;
+}
+
+.rte-content li {
+  display: list-item;
+  margin: 0.25rem 0;
+  padding-left: 0.15rem;
+}
+
+.rte-content li > p:first-child {
+  margin-top: 0;
+}
+
+.rte-content li > p:last-child {
+  margin-bottom: 0;
+}
+
+.rte-content li + li {
+  margin-top: 0.25rem;
+}
+
+/* =========================================================
+   TEXT ALIGNMENT
+   ========================================================= */
+
+/*
+ * Tiptap TextAlign writes the alignment directly
+ * on the paragraph/heading:
+ *
+ * style="text-align: center"
+ *
+ * Do not override those styles here.
+ *
+ * Alignment remains block-level:
+ *
+ * paragraph 1 -> left
+ * paragraph 2 -> center
+ * paragraph 3 -> right
+ */
+
+.rte-content p[style*="text-align: left"] {
+  text-align: left;
+}
+
+.rte-content p[style*="text-align: center"] {
+  text-align: center;
+}
+
+.rte-content p[style*="text-align: right"] {
+  text-align: right;
+}
+
+.rte-content p[style*="text-align: justify"] {
+  text-align: justify;
+}
+
+.rte-content h1[style*="text-align: left"],
+.rte-content h2[style*="text-align: left"],
+.rte-content h3[style*="text-align: left"] {
+  text-align: left;
+}
+
+.rte-content h1[style*="text-align: center"],
+.rte-content h2[style*="text-align: center"],
+.rte-content h3[style*="text-align: center"] {
+  text-align: center;
+}
+
+.rte-content h1[style*="text-align: right"],
+.rte-content h2[style*="text-align: right"],
+.rte-content h3[style*="text-align: right"] {
+  text-align: right;
+}
+
+.rte-content h1[style*="text-align: justify"],
+.rte-content h2[style*="text-align: justify"],
+.rte-content h3[style*="text-align: justify"] {
+  text-align: justify;
+}
+
+/* =========================================================
+   BLOCKQUOTE
+   ========================================================= */
+
+.rte-content blockquote {
+  margin: 1rem 0;
+  border-left: 4px solid var(--rte-primary);
+  border-radius: 0 0.5rem 0.5rem 0;
+  background: var(--rte-surface);
+  padding: 0.75rem 1rem;
+  color: var(--rte-muted);
+}
+
+.rte-content blockquote p {
+  margin: 0;
+}
+
+/* =========================================================
+   LINKS
+   ========================================================= */
+
+.rte-content a {
+  color: var(--rte-primary);
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+/* =========================================================
+   DIVIDER
+   ========================================================= */
+
+.rte-content hr {
+  margin: 1.5rem 0;
+  border: 0;
+  border-top: 1px solid var(--rte-border);
+}
+
+/* =========================================================
+   IMAGES
+   ========================================================= */
+
+.rte-content .rte-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1rem auto;
+  border: 1px solid var(--rte-border);
+  border-radius: 0.75rem;
+  box-shadow: var(--rte-shadow);
+}
+
+/* =========================================================
+   PLACEHOLDER
+   ========================================================= */
+
+.rte-content p.is-editor-empty:first-child::before {
+  float: left;
+  height: 0;
+  color: var(--rte-muted);
+  content: attr(data-placeholder);
+  pointer-events: none;
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.rte-footer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--rte-border);
+  padding: 0.625rem 0.875rem;
+  background: var(--rte-surface);
+}
+
+.rte-helper,
+.rte-error,
+.rte-count {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.2rem;
+}
+
+.rte-helper {
+  color: var(--rte-muted);
+}
+
+.rte-error {
+  color: var(--rte-danger);
+  font-weight: 600;
+}
+
+.rte-count {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.35rem;
+  color: var(--rte-muted);
+  white-space: nowrap;
+}
+
+.rte-count--limit-exceeded {
+  color: var(--rte-danger);
+  font-weight: 700;
+}
+
+/* =========================================================
+   HIDDEN FILE INPUT
+   ========================================================= */
+
+.rte-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+/* =========================================================
+   LOADING SKELETON
+   ========================================================= */
+
+.rte-container--loading {
+  overflow: hidden;
+}
+
+.rte-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--rte-surface) 25%,
+    var(--rte-border) 37%,
+    var(--rte-surface) 63%
+  );
+  background-size: 400% 100%;
+  animation: rte-loading 1.4s ease infinite;
+}
+
+.rte-skeleton--toolbar {
+  height: 3.6rem;
+  border-bottom: 1px solid var(--rte-border);
+}
+
+.rte-skeleton--content {
+  margin: 1rem;
+  border-radius: 0.75rem;
+}
+
+@keyframes rte-loading {
+  0% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+/* =========================================================
+   LINK DIALOG
+   ========================================================= */
+
+.rte-dialog-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(0 0 0 / 45%);
+  backdrop-filter: blur(2px);
+}
+
+.rte-dialog {
+  width: min(100%, 28rem);
+  border: 1px solid var(--rte-border);
+  border-radius: 1rem;
+  background: var(--rte-bg);
+  padding: 1.1rem;
+  color: var(--rte-text);
+  box-shadow: 0 24px 55px rgb(0 0 0 / 26%);
+}
+
+.rte-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.rte-dialog__header h3 {
+  margin: 0;
+  color: var(--rte-text);
+  font-size: 1rem;
+}
+
+.rte-dialog__close {
+  display: inline-grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--rte-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.rte-dialog__close:hover {
+  background: var(--rte-surface-hover);
+}
+
+.rte-dialog__label {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--rte-text);
+  font-size: 0.825rem;
+  font-weight: 650;
+}
+
+.rte-dialog__input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 2.65rem;
+  border: 1px solid var(--rte-border-strong);
+  border-radius: 0.55rem;
+  background: var(--rte-bg);
+  padding: 0 0.75rem;
+  color: var(--rte-text);
+  font: inherit;
+}
+
+.rte-dialog__input::placeholder {
+  color: var(--rte-muted);
+}
+
+.rte-dialog__hint,
+.rte-dialog__error {
+  margin: 0.45rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.2rem;
+}
+
+.rte-dialog__hint {
+  color: var(--rte-muted);
+}
+
+.rte-dialog__error {
+  color: var(--rte-danger);
+  font-weight: 600;
+}
+
+.rte-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.625rem;
+  margin-top: 1.25rem;
+}
+
+.rte-button {
+  min-height: 2.4rem;
+  border-radius: 0.55rem;
+  padding: 0 0.9rem;
+  font: inherit;
+  font-size: 0.825rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.rte-button--secondary {
+  border: 1px solid var(--rte-border-strong);
+  background: var(--rte-bg);
+  color: var(--rte-text);
+}
+
+.rte-button--secondary:hover {
+  background: var(--rte-surface-hover);
+}
+
+.rte-button--primary {
+  border: 1px solid var(--rte-primary);
+  background: var(--rte-primary);
+  color: var(--primary-foreground);
+}
+
+.rte-button--primary:hover {
+  opacity: 0.9;
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 640px) {
+  .rte-label-row {
+    padding: 0.75rem 0.75rem 0;
+  }
+
+  .rte-toolbar {
+    gap: 0.35rem;
+    padding: 0.5rem;
+  }
+
+  .rte-toolbar__group {
+    gap: 0.15rem;
+    padding-right: 0.35rem;
+  }
+
+  .rte-toolbar__button {
+    min-width: 2.1rem;
+    height: 2.1rem;
+    padding: 0 0.4rem;
+  }
+
+  .rte-toolbar__select {
+    min-width: 7.5rem;
+    height: 2.1rem;
+  }
+
+  .rte-color-picker__popover {
+    width: 17rem;
+  }
+
+  .rte-color-picker__grid {
+    gap: 0.3rem;
+  }
+
+  .rte-color-picker__swatch {
+    width: 1.55rem;
+    height: 1.55rem;
+  }
+
+  .rte-content {
+    padding: 1rem 0.875rem;
+    font-size: 0.95rem;
+  }
+
+  .rte-footer {
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.55rem 0.75rem;
+  }
+
+  .rte-count {
+    white-space: normal;
+  }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .rte-container,
+  .rte-toolbar__button,
+  .rte-skeleton,
+  .rte-color-picker__swatch {
+    transition: none;
+    animation: none;
+  }
+}
