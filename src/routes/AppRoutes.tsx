@@ -23,18 +23,20 @@ import { ProjectsPage } from "@/pages/projects/ProjectsPage";
 import { ProjectFormPage } from "@/pages/projects/ProjectFormPage";
 import { DocumentsPage } from "@/pages/documents/Documentspage";
 import { DocumentFormPage } from "@/pages/documents/Documentformpage";
+import { BlogsPage } from "@/pages/blogs/BlogsPage";
+import { BlogFormPage } from "@/pages/blogs/BlogFormPage";
 
-function PlaceholderPage({ title }: { title: string }) {
-  return (
-    <div>
-      <h1 className="text-2xl font-semibold">{title}</h1>
+// function PlaceholderPage({ title }: { title: string }) {
+//   return (
+//     <div>
+//       <h1 className="text-2xl font-semibold">{title}</h1>
 
-      <p className="mt-2 text-sm text-muted-foreground">
-        This module is under development.
-      </p>
-    </div>
-  );
-}
+//       <p className="mt-2 text-sm text-muted-foreground">
+//         This module is under development.
+//       </p>
+//     </div>
+//   );
+// }
 
 export function AppRoutes() {
   return (
@@ -67,7 +69,9 @@ export function AppRoutes() {
           <Route path="/clients/:id/edit" element={<ClientFormPage />} />
 
           {/* Blogs */}
-          <Route path="/blogs" element={<PlaceholderPage title="Blogs" />} />
+          <Route path="/blogs" element={<BlogsPage />} />
+          <Route path="/blogs/create" element={<BlogFormPage />} />
+          <Route path="/blogs/:id/edit" element={<BlogFormPage />} />
 
           {/* Founder */}
           <Route path="/founder" element={<FounderPage />} />
