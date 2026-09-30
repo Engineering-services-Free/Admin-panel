@@ -21,8 +21,7 @@ import { DynamicStringList } from "./components/DynamicStringList";
 interface ServiceFormProps {
   initialValues?: Partial<CreateServiceInput>;
   isSubmitting: boolean;
-  onSubmit: (values: CreateServiceInput) => void;
-  onCancel: () => void;
+  onSubmit: (values: CreateServiceInput) => void; 
 }
 
 const DEFAULT_VALUES: CreateServiceInput = {
@@ -74,8 +73,7 @@ const generateSlug = (title: string): string => {
 export function ServiceForm({
   initialValues,
   isSubmitting,
-  onSubmit,
-  onCancel,
+  onSubmit, 
 }: ServiceFormProps) {
   const [formValues, setFormValues] = useState<CreateServiceInput>({
     ...DEFAULT_VALUES,
@@ -1147,32 +1145,6 @@ export function ServiceForm({
           </div>
         </div>
       </section>
-
-      {/* ======================================================
-          ACTIONS
-      ====================================================== */}
-
-      {/* <div className="flex justify-end gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          disabled={isFormSubmitting}
-        >
-          Cancel
-        </Button>
-
-        <Button
-          type="submit"
-          disabled={isFormSubmitting || !formValues.heroImage.url}
-        >
-          {isUploadingHeroImage
-            ? "Uploading..."
-            : isSubmitting
-              ? "Saving..."
-              : "Save Service"}
-        </Button>
-      </div> */}
     </form>
   );
 }

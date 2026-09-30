@@ -214,8 +214,7 @@ export function ServiceFormPage() {
         <ServiceForm
           initialValues={initialValues}
           isSubmitting={isSubmitting}
-          onSubmit={handleSubmit}
-          onCancel={() => navigate("/services")}
+          onSubmit={handleSubmit} 
         />
       </div>
     </div>
