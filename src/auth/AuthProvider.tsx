@@ -7,8 +7,17 @@ import {
 } from "react";
 
 import { login as loginApi } from "@/api/auth.api";
+import {
+  AUTH_SESSION_CHANGED_EVENT,
+  clearAuthSession,
+  getJwtExpirationTime,
+  notifyAuthSessionChanged,
+  readStoredAuthSession,
+} from "@/auth/session";
 
 import type { AuthUser, LoginInput } from "@/typings/api.typings";
+
+const MAX_TIMER_DELAY = 2_147_483_647;
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -29,35 +38,83 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken");
-    const storedUser = localStorage.getItem("user");
+    let expirationTimer: number | undefined;
 
-    if (accessToken && storedUser) {
-      try {
-        setUser(JSON.parse(storedUser) as AuthUser);
-      } catch {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("user");
+    const synchronizeSession = () => {
+      window.clearTimeout(expirationTimer);
+
+      const session = readStoredAuthSession();
+
+      if (!session) {
+        const hadStoredSession =
+          localStorage.getItem("accessToken") !== null ||
+          localStorage.getItem("user") !== null;
+
+        setUser(null);
+
+        if (hadStoredSession) {
+          clearAuthSession();
+        }
+      } else {
+        setUser(session.user);
+
+        expirationTimer = window.setTimeout(
+          synchronizeSession,
+          Math.min(
+            Math.max(session.expiresAt - Date.now(), 0),
+            MAX_TIMER_DELAY,
+          ),
+        );
       }
-    }
 
-    setIsLoading(false);
+      setIsLoading(false);
+    };
+
+    const synchronizeWhenVisible = () => {
+      if (document.visibilityState === "visible") {
+        synchronizeSession();
+      }
+    };
+
+    synchronizeSession();
+    window.addEventListener("focus", synchronizeSession);
+    window.addEventListener("pageshow", synchronizeSession);
+    window.addEventListener(AUTH_SESSION_CHANGED_EVENT, synchronizeSession);
+    window.addEventListener("storage", synchronizeSession);
+    document.addEventListener("visibilitychange", synchronizeWhenVisible);
+
+    return () => {
+      window.clearTimeout(expirationTimer);
+      window.removeEventListener("focus", synchronizeSession);
+      window.removeEventListener("pageshow", synchronizeSession);
+      window.removeEventListener(
+        AUTH_SESSION_CHANGED_EVENT,
+        synchronizeSession,
+      );
+      window.removeEventListener("storage", synchronizeSession);
+      document.removeEventListener(
+        "visibilitychange",
+        synchronizeWhenVisible,
+      );
+    };
   }, []);
 
   const login = async (input: LoginInput) => {
     const response = await loginApi(input);
+    const expiresAt = getJwtExpirationTime(response.data.accessToken);
+
+    if (expiresAt === null || expiresAt <= Date.now()) {
+      throw new Error("The server returned an invalid or expired access token.");
+    }
 
     localStorage.setItem("accessToken", response.data.accessToken);
-
     localStorage.setItem("user", JSON.stringify(response.data.user));
-
     setUser(response.data.user);
+    notifyAuthSessionChanged();
   };
 
   const logout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("user");
-
+    clearAuthSession();
     setUser(null);
   };
 
@@ -65,7 +122,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated: Boolean(user),
+        isAuthenticated:
+          Boolean(user) && Boolean(readStoredAuthSession()),
         isLoading,
         login,
         logout,
