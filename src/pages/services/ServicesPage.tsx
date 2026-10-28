@@ -66,7 +66,7 @@ export function ServicesPage() {
         title="Services"
         description="Manage your services."
         actions={
-          <Button type="button" onClick={() => navigate("/services/new")}>
+          <Button type="button" onClick={() => navigate("/services/create")}>
             Create Service
           </Button>
         }
