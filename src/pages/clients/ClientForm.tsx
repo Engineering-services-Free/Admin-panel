@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { uploadImage } from "@/api/uploads.api";
+import { withGeneratedImageAlt } from "@/lib/imageAltText";
 
 import type { CreateClientInput } from "@/typings/clients.typings";
 
@@ -86,12 +87,10 @@ export function ClientForm({
     onSubmit({
       name,
       industry: formValues.industry.trim(),
-      image: {
-        url: formValues.image.url,
-        // The API requires alt text, so fall back to "<name> logo"
-        alt: formValues.image.alt.trim() || `${name} logo`,
-        storagePath: formValues.image.storagePath,
-      },
+      image: withGeneratedImageAlt(
+        formValues.image,
+        `${name || "Client"} logo`,
+      ),
     });
   };
 

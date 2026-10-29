@@ -5,6 +5,7 @@ import {
   deleteBlog,
   getBlogById,
   getBlogs,
+  reorderBlog,
   updateBlog,
 } from "@/api/blogs.api";
 
@@ -76,6 +77,18 @@ export function useDeleteBlog() {
       queryClient.invalidateQueries({
         queryKey: ["blogs"],
       });
+    },
+  });
+}
+
+export function useReorderBlog() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, order }: { id: string; order: number }) =>
+      reorderBlog(id, order),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["blogs"] });
     },
   });
 }

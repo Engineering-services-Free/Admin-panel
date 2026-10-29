@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { GripVertical, Pencil, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 
 import type { Service } from "@/typings/services.typings";
+import { useOrderDrag } from "@/hooks/useOrderDrag";
 
 interface ServiceListProps {
   services: Service[];
@@ -26,6 +27,10 @@ interface ServiceListProps {
   onPageChange: (page: number) => void;
   onEdit: (service: Service) => void;
   onDelete: (service: Service) => void;
+  canReorder: boolean;
+  isReordering: boolean;
+  firstOrder: number;
+  onReorder: (id: string, order: number) => Promise<unknown>;
 }
 
 export default function ServiceList({
@@ -39,7 +44,18 @@ export default function ServiceList({
   onPageChange,
   onEdit,
   onDelete,
+  canReorder,
+  isReordering,
+  firstOrder,
+  onReorder,
 }: ServiceListProps) {
+  const { rowProps } = useOrderDrag({
+    items: services,
+    enabled: canReorder && !isReordering && !isLoading,
+    firstPosition: firstOrder,
+    onMove: onReorder,
+  });
+
   if (isLoading) {
     return (
       <div className="rounded-lg border">
@@ -77,8 +93,8 @@ export default function ServiceList({
           </TableHeader>
 
           <TableBody>
-            {services.map((service) => (
-              <TableRow key={service.id}>
+            {services.map((service, index) => (
+              <TableRow key={service.id} {...rowProps(service.id, index)}>
                 {/* Service */}
                 <TableCell>
                   <div className="flex flex-col gap-1">
@@ -105,7 +121,17 @@ export default function ServiceList({
                 </TableCell>
 
                 {/* Order */}
-                <TableCell>{service.order}</TableCell>
+                <TableCell>
+                  <span className="flex items-center gap-1.5 tabular-nums">
+                    {canReorder && (
+                      <GripVertical
+                        className="size-4 cursor-grab text-muted-foreground active:cursor-grabbing"
+                        aria-hidden="true"
+                      />
+                    )}
+                    {service.order}
+                  </span>
+                </TableCell>
 
                 {/* Updated */}
                 <TableCell>

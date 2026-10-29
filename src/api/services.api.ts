@@ -55,3 +55,7 @@ export function deleteService(id: string): Promise<DeleteServiceResponse> {
     .delete<DeleteServiceResponse>(`/services/${id}`)
     .then((response) => response.data);
 }
+
+export function reorderService(id: string, order: number): Promise<void> {
+  return apiClient.patch(`/services/${id}/order`, { order }).then(() => {});
+}

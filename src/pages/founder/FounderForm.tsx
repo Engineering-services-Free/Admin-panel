@@ -4,8 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label"; 
 
 import { RichTextEditor } from "@/components/rich-text-editor";
+import { PersistenceRequiredIndicator } from "@/components/common/PersistenceRequiredIndicator";
 
 import { uploadImage } from "@/api/uploads.api";
+import { withGeneratedImageAlt } from "@/lib/imageAltText";
 
 import type { CreateFounderInput } from "@/typings/founder.typings";
 
@@ -138,12 +140,10 @@ export function FounderForm({
       order,
       overview: formValues.overview,
       experience: formValues.experience,
-      image: {
-        url: formValues.image.url,
-        // The API requires alt text, so fall back to the name
-        alt: formValues.image.alt.trim() || name,
-        storagePath: formValues.image.storagePath,
-      },
+      image: withGeneratedImageAlt(
+        formValues.image,
+        `${name || "Founder"} portrait`,
+      ),
     });
   };
 
@@ -296,7 +296,10 @@ export function FounderForm({
       {/* OVERVIEW */}
       <section className="rounded-lg border">
         <div className="border-b p-6">
-          <h2 className="text-lg font-semibold">Overview</h2>
+          <h2 className="text-lg font-semibold">
+            Overview
+            <PersistenceRequiredIndicator entity="founder" field="overview" />
+          </h2>
 
           <p className="mt-1 text-sm text-muted-foreground">
             A short introduction to the founder.
@@ -323,7 +326,13 @@ export function FounderForm({
       {/* EXPERIENCE */}
       <section className="rounded-lg border">
         <div className="border-b p-6">
-          <h2 className="text-lg font-semibold">Experience</h2>
+          <h2 className="text-lg font-semibold">
+            Experience
+            <PersistenceRequiredIndicator
+              entity="founder"
+              field="experience"
+            />
+          </h2>
 
           <p className="mt-1 text-sm text-muted-foreground">
             Detailed background and experience of the founder.

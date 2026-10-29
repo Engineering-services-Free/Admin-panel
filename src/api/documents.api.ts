@@ -83,3 +83,7 @@ export function deleteDocument(id: string): Promise<DeleteDocumentResponse> {
     .delete<DeleteDocumentResponse>(`/documents/${id}`)
     .then((response) => response.data);
 }
+
+export function reorderDocument(id: string, order: number): Promise<void> {
+  return apiClient.patch(`/documents/${id}/order`, { order }).then(() => {});
+}

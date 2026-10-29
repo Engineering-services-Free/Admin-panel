@@ -5,8 +5,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 import { RichTextEditor } from "@/components/rich-text-editor";
+import { PersistenceRequiredIndicator } from "@/components/common/PersistenceRequiredIndicator";
 
 import { uploadImage } from "@/api/uploads.api";
+import { withGeneratedImageAlt } from "@/lib/imageAltText";
 
 import type { CreateAboutInput } from "@/typings/about.typings";
 
@@ -83,11 +85,10 @@ export function AboutForm({
     }
 
     onSubmit({
-      heroImage: {
-        url: formValues.heroImage.url,
-        alt: formValues.heroImage.alt,
-        storagePath: formValues.heroImage.storagePath,
-      },
+      heroImage: withGeneratedImageAlt(
+        formValues.heroImage,
+        "About page hero image",
+      ),
       overview: formValues.overview.trim(),
       aboutUs: formValues.aboutUs,
     });
@@ -198,7 +199,10 @@ export function AboutForm({
 
       <section className="rounded-lg border">
         <div className="border-b p-6">
-          <h2 className="text-lg font-semibold">Overview</h2>
+          <h2 className="text-lg font-semibold">
+            Overview
+            <PersistenceRequiredIndicator entity="about" field="overview" />
+          </h2>
 
           <p className="mt-1 text-sm text-muted-foreground">
             Provide a short overview of your company.
@@ -228,7 +232,10 @@ export function AboutForm({
 
       <section className="rounded-lg border">
         <div className="border-b p-6">
-          <h2 className="text-lg font-semibold">About Us</h2>
+          <h2 className="text-lg font-semibold">
+            About Us
+            <PersistenceRequiredIndicator entity="about" field="aboutUs" />
+          </h2>
 
           <p className="mt-1 text-sm text-muted-foreground">
             Detailed information about the company.

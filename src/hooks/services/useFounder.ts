@@ -5,13 +5,16 @@ import {
   deleteFounder,
   getFounderById,
   getFounders,
+  reorderFounder,
   updateFounder,
 } from "@/api/founder.api";
 
 import type {
   CreateFounderInput,
+  GetFoundersResponse,
   UpdateFounderInput,
 } from "@/typings/founder.typings";
+import { moveItemInOrderedList } from "@/lib/optimisticOrder";
 
 export function useFounders() {
   return useQuery({
@@ -76,6 +79,59 @@ export function useDeleteFounder() {
       queryClient.invalidateQueries({
         queryKey: ["founder"],
       });
+    },
+  });
+}
+
+export function useReorderFounder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      order,
+    }: {
+      id: string;
+      order: number;
+      queryKey: readonly unknown[];
+      firstPosition: number;
+    }) => reorderFounder(id, order),
+    onMutate: async (variables: {
+      id: string;
+      order: number;
+      queryKey: readonly unknown[];
+      firstPosition: number;
+    }) => {
+      await queryClient.cancelQueries({ queryKey: variables.queryKey });
+      const previous = queryClient.getQueryData<GetFoundersResponse>(
+        variables.queryKey,
+      );
+
+      queryClient.setQueryData<GetFoundersResponse>(
+        variables.queryKey,
+        (current) =>
+          current
+            ? {
+                ...current,
+                data: moveItemInOrderedList(
+                  current.data,
+                  variables.id,
+                  variables.order,
+                  variables.firstPosition,
+                ),
+              }
+            : current,
+      );
+
+      return { queryKey: variables.queryKey, previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(context.queryKey, context.previous);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["founder"] });
     },
   });
 }

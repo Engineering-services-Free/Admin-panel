@@ -1,14 +1,19 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Pencil, Trash2, User } from "lucide-react";
+import { GripVertical, Pencil, Trash2, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/common/PageHeader";
 import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 import { RichTextContent } from "@/components/common/RichTextContent";
 
-import { useDeleteFounder, useFounders } from "@/hooks/services/useFounder";
+import {
+  useDeleteFounder,
+  useFounders,
+  useReorderFounder,
+} from "@/hooks/services/useFounder";
 import { getErrorMessage } from "@/lib/getErrorMessage";
+import { useOrderDrag } from "@/hooks/useOrderDrag";
 
 import type { Founder } from "@/typings/founder.typings";
 
@@ -19,11 +24,24 @@ export function FounderPage() {
 
   const { data, isLoading, isError, error } = useFounders();
   const deleteFounderMutation = useDeleteFounder();
+  const reorderFounderMutation = useReorderFounder();
 
   const founders = useMemo(
     () => [...(data?.data ?? [])].sort((a, b) => a.order - b.order),
     [data],
   );
+  const { rowProps } = useOrderDrag({
+    items: founders,
+    enabled: !reorderFounderMutation.isPending && !isLoading,
+    firstPosition: 1,
+    onMove: (id, order) =>
+      reorderFounderMutation.mutateAsync({
+        id,
+        order,
+        queryKey: ["founder"],
+        firstPosition: 1,
+      }),
+  });
 
   const handleConfirmDelete = async () => {
     if (!founderToDelete) {
@@ -70,6 +88,17 @@ export function FounderPage() {
           </div>
         )}
 
+        {reorderFounderMutation.isError && (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4">
+            <p className="text-sm text-destructive">
+              {getErrorMessage(
+                reorderFounderMutation.error,
+                "Failed to reorder founders.",
+              )}
+            </p>
+          </div>
+        )}
+
         {isLoading && (
           <div className="rounded-lg border p-6">
             <p className="text-sm text-muted-foreground">Loading founders...</p>
@@ -97,59 +126,68 @@ export function FounderPage() {
 
         {founders.length > 0 && (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {founders.map((founder) => (
-              <div
-                key={founder.id}
-                className="flex flex-col overflow-hidden rounded-lg border"
-              >
-                <div className="relative h-56 bg-muted/40">
-                  <img
-                    src={founder.image.url}
-                    alt={founder.image.alt}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                  />
+            {founders.map((founder, index) => {
+              const dragProps = rowProps(founder.id, index);
 
-                  <span className="absolute left-3 top-3 rounded-full bg-background/90 px-2.5 py-0.5 text-xs font-medium shadow-sm">
-                    Order {founder.order}
-                  </span>
-                </div>
-
-                <div className="flex flex-1 flex-col gap-4 p-4">
-                  <div className="min-w-0 space-y-2">
-                    <h3 className="truncate font-semibold">{founder.name}</h3>
-
-                    <RichTextContent
-                      html={founder.overview}
-                      className="max-h-48 overflow-y-auto pr-1"
+              return (
+                <div
+                  key={founder.id}
+                  {...dragProps}
+                  className={`flex flex-col overflow-hidden rounded-lg border ${dragProps.className ?? ""}`}
+                >
+                  <div className="relative h-56 bg-muted/40">
+                    <img
+                      src={founder.image.url}
+                      alt={founder.image.alt}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
                     />
+
+                    <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-background/90 px-2.5 py-0.5 text-xs font-medium shadow-sm">
+                      <GripVertical
+                        className="size-3.5 cursor-grab text-muted-foreground active:cursor-grabbing"
+                        aria-hidden="true"
+                      />
+                      Order {founder.order}
+                    </span>
                   </div>
 
-                  <div className="mt-auto flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => navigate(`/founder/${founder.id}/edit`)}
-                    >
-                      <Pencil className="mr-2 size-4" />
-                      Edit
-                    </Button>
+                  <div className="flex flex-1 flex-col gap-4 p-4">
+                    <div className="min-w-0 space-y-2">
+                      <h3 className="truncate font-semibold">{founder.name}</h3>
 
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      aria-label={`Delete ${founder.name}`}
-                      onClick={() => setFounderToDelete(founder)}
-                    >
-                      <Trash2 className="size-4 text-destructive" />
-                    </Button>
+                      <RichTextContent
+                        html={founder.overview}
+                        className="max-h-48 overflow-y-auto pr-1"
+                      />
+                    </div>
+
+                    <div className="mt-auto flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => navigate(`/founder/${founder.id}/edit`)}
+                      >
+                        <Pencil className="mr-2 size-4" />
+                        Edit
+                      </Button>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        aria-label={`Delete ${founder.name}`}
+                        onClick={() => setFounderToDelete(founder)}
+                      >
+                        <Trash2 className="size-4 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

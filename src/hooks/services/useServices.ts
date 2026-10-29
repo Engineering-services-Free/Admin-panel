@@ -6,14 +6,17 @@ import {
   getServiceById,
   getServiceBySlug,
   getServices,
+  reorderService,
   updateService,
 } from "@/api/services.api";
 
 import type {
   CreateServiceInput,
   GetServicesParams,
+  GetServicesResponse,
   UpdateServiceInput,
 } from "@/typings/services.typings";
+import { moveItemInOrderedList } from "@/lib/optimisticOrder";
 
 export function useServices(params?: GetServicesParams) {
   return useQuery({
@@ -86,6 +89,59 @@ export function useDeleteService() {
       queryClient.invalidateQueries({
         queryKey: ["services"],
       });
+    },
+  });
+}
+
+export function useReorderService() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      order,
+    }: {
+      id: string;
+      order: number;
+      queryKey: readonly unknown[];
+      firstPosition: number;
+    }) => reorderService(id, order),
+    onMutate: async (variables: {
+      id: string;
+      order: number;
+      queryKey: readonly unknown[];
+      firstPosition: number;
+    }) => {
+      await queryClient.cancelQueries({ queryKey: variables.queryKey });
+      const previous = queryClient.getQueryData<GetServicesResponse>(
+        variables.queryKey,
+      );
+
+      queryClient.setQueryData<GetServicesResponse>(
+        variables.queryKey,
+        (current) =>
+          current
+            ? {
+                ...current,
+                data: moveItemInOrderedList(
+                  current.data,
+                  variables.id,
+                  variables.order,
+                  variables.firstPosition,
+                ),
+              }
+            : current,
+      );
+
+      return { queryKey: variables.queryKey, previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(context.queryKey, context.previous);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["services"] });
     },
   });
 }

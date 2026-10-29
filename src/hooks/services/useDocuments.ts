@@ -5,14 +5,17 @@ import {
   deleteDocument,
   getDocumentById,
   getDocuments,
+  reorderDocument,
   updateDocument,
 } from "@/api/documents.api";
 
 import type {
   CreateDocumentInput,
+  GetDocumentsResponse,
   GetDocumentsParams,
   UpdateDocumentInput,
 } from "@/typings/documents.typings";
+import { moveItemInOrderedList } from "@/lib/optimisticOrder";
 
 export function useDocuments(params?: GetDocumentsParams) {
   return useQuery({
@@ -77,6 +80,59 @@ export function useDeleteDocument() {
       queryClient.invalidateQueries({
         queryKey: ["documents"],
       });
+    },
+  });
+}
+
+export function useReorderDocument() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      order,
+    }: {
+      id: string;
+      order: number;
+      queryKey: readonly unknown[];
+      firstPosition: number;
+    }) => reorderDocument(id, order),
+    onMutate: async (variables: {
+      id: string;
+      order: number;
+      queryKey: readonly unknown[];
+      firstPosition: number;
+    }) => {
+      await queryClient.cancelQueries({ queryKey: variables.queryKey });
+      const previous = queryClient.getQueryData<GetDocumentsResponse>(
+        variables.queryKey,
+      );
+
+      queryClient.setQueryData<GetDocumentsResponse>(
+        variables.queryKey,
+        (current) =>
+          current
+            ? {
+                ...current,
+                data: moveItemInOrderedList(
+                  current.data,
+                  variables.id,
+                  variables.order,
+                  variables.firstPosition,
+                ),
+              }
+            : current,
+      );
+
+      return { queryKey: variables.queryKey, previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(context.queryKey, context.previous);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
     },
   });
 }

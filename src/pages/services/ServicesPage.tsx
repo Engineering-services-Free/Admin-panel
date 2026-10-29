@@ -8,7 +8,11 @@ import ServiceList from "./ServiceList";
 
 import type { GetServicesParams, Service } from "@/typings/services.typings";
 
-import { useDeleteService, useServices } from "@/hooks/services/useServices";
+import {
+  useDeleteService,
+  useReorderService,
+  useServices,
+} from "@/hooks/services/useServices";
 
 import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -26,6 +30,7 @@ export function ServicesPage() {
   const { data, isLoading, isError, error } = useServices(filters);
 
   const deleteServiceMutation = useDeleteService();
+  const reorderServiceMutation = useReorderService();
 
   // Edit
 
@@ -84,6 +89,16 @@ export function ServicesPage() {
         </div>
       )}
 
+      {reorderServiceMutation.isError && (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4">
+          <p className="text-sm text-destructive">
+            {reorderServiceMutation.error instanceof Error
+              ? reorderServiceMutation.error.message
+              : "Failed to reorder services."}
+          </p>
+        </div>
+      )}
+
       {!isError && (
         <ServiceList
           services={data?.data ?? []}
@@ -96,6 +111,18 @@ export function ServicesPage() {
           onPageChange={handlePageChange}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          canReorder={!filters.status && filters.featured === undefined}
+          isReordering={reorderServiceMutation.isPending}
+          firstOrder={((filters.page ?? 1) - 1) * (filters.limit ?? 10) + 1}
+          onReorder={(id, order) =>
+            reorderServiceMutation.mutateAsync({
+              id,
+              order,
+              queryKey: ["services", filters],
+              firstPosition:
+                ((filters.page ?? 1) - 1) * (filters.limit ?? 10) + 1,
+            })
+          }
         />
       )}
 

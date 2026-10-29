@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, FolderKanban, Pencil, Star, Trash2 } from "lucide-react";
+import {
+  Eye,
+  FolderKanban,
+  GripVertical,
+  Pencil,
+  Star,
+  Trash2,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,8 +22,13 @@ import {
 import { PageHeader } from "@/components/common/PageHeader";
 import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 
-import { useDeleteProject, useProjects } from "@/hooks/services/useProjects";
+import {
+  useDeleteProject,
+  useProjects,
+  useReorderProject,
+} from "@/hooks/services/useProjects";
 import { getErrorMessage } from "@/lib/getErrorMessage";
+import { useOrderDrag } from "@/hooks/useOrderDrag";
 
 import type {
   GetProjectsParams,
@@ -61,6 +73,7 @@ export function ProjectsPage() {
   const { data, isLoading, isError, error } = useProjects(filters);
   const clientsQuery = useClients({ page: 1, limit: 100 });
   const deleteMutation = useDeleteProject();
+  const reorderMutation = useReorderProject();
 
   const projects = data?.data ?? [];
   const pagination = data?.pagination;
@@ -109,6 +122,18 @@ export function ProjectsPage() {
   };
 
   const hasFilters = Boolean(filters.industry || filters.status);
+  const { rowProps } = useOrderDrag({
+    items: projects,
+    enabled: !hasFilters && !reorderMutation.isPending && !isLoading,
+    firstPosition: ((filters.page ?? 1) - 1) * (filters.limit ?? 12) + 1,
+    onMove: (id, order) =>
+      reorderMutation.mutateAsync({
+        id,
+        order,
+        queryKey: ["projects", filters],
+        firstPosition: ((filters.page ?? 1) - 1) * (filters.limit ?? 12) + 1,
+      }),
+  });
 
   return (
     <div>
@@ -173,6 +198,14 @@ export function ProjectsPage() {
           </div>
         )}
 
+        {reorderMutation.isError && (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4">
+            <p className="text-sm text-destructive">
+              {getErrorMessage(reorderMutation.error, "Failed to reorder projects.")}
+            </p>
+          </div>
+        )}
+
         {isLoading && (
           <div className="rounded-lg border p-6">
             <p className="text-sm text-muted-foreground">Loading projects...</p>
@@ -220,10 +253,18 @@ export function ProjectsPage() {
               </TableHeader>
 
               <TableBody>
-                {projects.map((project) => (
-                  <TableRow key={project.id}>
+                {projects.map((project, index) => (
+                  <TableRow key={project.id} {...rowProps(project.id, index)}>
                     <TableCell className="font-medium tabular-nums">
-                      {project.order}
+                      <span className="flex items-center gap-1.5">
+                        {!hasFilters && (
+                          <GripVertical
+                            className="size-4 cursor-grab text-muted-foreground active:cursor-grabbing"
+                            aria-hidden="true"
+                          />
+                        )}
+                        {project.order}
+                      </span>
                     </TableCell>
                     <TableCell className="max-w-xs">
                       <div className="flex items-center gap-2">

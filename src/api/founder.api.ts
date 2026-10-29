@@ -71,3 +71,7 @@ export function deleteFounder(id: string): Promise<DeleteFounderResponse> {
     .delete<DeleteFounderResponse>(`/founder/${id}`)
     .then((response) => response.data);
 }
+
+export function reorderFounder(id: string, order: number): Promise<void> {
+  return apiClient.patch(`/founder/${id}/order`, { order }).then(() => {});
+}

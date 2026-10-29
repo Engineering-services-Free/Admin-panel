@@ -82,3 +82,7 @@ export function deleteProject(id: string): Promise<DeleteProjectResponse> {
     .delete<DeleteProjectResponse>(`/projects/${id}`)
     .then((response) => response.data);
 }
+
+export function reorderProject(id: string, order: number): Promise<void> {
+  return apiClient.patch(`/projects/${id}/order`, { order }).then(() => {});
+}

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, FileText, Pencil, Trash2 } from "lucide-react";
+import { Eye, FileText, GripVertical, Pencil, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,9 +14,14 @@ import {
 import { PageHeader } from "@/components/common/PageHeader";
 import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 
-import { useDeleteDocument, useDocuments } from "@/hooks/services/useDocuments";
+import {
+  useDeleteDocument,
+  useDocuments,
+  useReorderDocument,
+} from "@/hooks/services/useDocuments";
 import { useClients } from "@/hooks/services/useClients";
 import { getErrorMessage } from "@/lib/getErrorMessage";
+import { useOrderDrag } from "@/hooks/useOrderDrag";
 
 import type {
   Document as DocumentItem,
@@ -66,6 +71,7 @@ export function DocumentsPage() {
   const { data, isLoading, isError, error } = useDocuments(filters);
   const clientsQuery = useClients({ page: 1, limit: 100 });
   const deleteMutation = useDeleteDocument();
+  const reorderMutation = useReorderDocument();
 
   const documents = data?.data ?? [];
   const pagination = data?.pagination;
@@ -99,6 +105,20 @@ export function DocumentsPage() {
   const hasFilters = Boolean(
     filters.type || filters.visibility || filters.clientId,
   );
+  const canReorder =
+    Boolean(filters.clientId) && !filters.type && !filters.visibility;
+  const { rowProps } = useOrderDrag({
+    items: documents,
+    enabled: canReorder && !reorderMutation.isPending && !isLoading,
+    firstPosition: ((filters.page ?? 1) - 1) * (filters.limit ?? 12) + 1,
+    onMove: (id, order) =>
+      reorderMutation.mutateAsync({
+        id,
+        order,
+        queryKey: ["documents", filters],
+        firstPosition: ((filters.page ?? 1) - 1) * (filters.limit ?? 12) + 1,
+      }),
+  });
 
   return (
     <div>
@@ -198,6 +218,17 @@ export function DocumentsPage() {
           </div>
         )}
 
+        {reorderMutation.isError && (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4">
+            <p className="text-sm text-destructive">
+              {getErrorMessage(
+                reorderMutation.error,
+                "Failed to reorder documents.",
+              )}
+            </p>
+          </div>
+        )}
+
         {isLoading && (
           <div className="rounded-lg border p-6">
             <p className="text-sm text-muted-foreground">
@@ -248,10 +279,18 @@ export function DocumentsPage() {
               </TableHeader>
 
               <TableBody>
-                {documents.map((document) => (
-                  <TableRow key={document.id}>
+                {documents.map((document, index) => (
+                  <TableRow key={document.id} {...rowProps(document.id, index)}>
                     <TableCell className="font-medium tabular-nums">
-                      {document.order}
+                      <span className="flex items-center gap-1.5">
+                        {canReorder && (
+                          <GripVertical
+                            className="size-4 cursor-grab text-muted-foreground active:cursor-grabbing"
+                            aria-hidden="true"
+                          />
+                        )}
+                        {document.order}
+                      </span>
                     </TableCell>
 
                     <TableCell className="max-w-xs">

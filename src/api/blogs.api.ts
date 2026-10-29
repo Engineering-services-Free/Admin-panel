@@ -78,3 +78,7 @@ export function deleteBlog(id: string): Promise<DeleteBlogResponse> {
     .delete<DeleteBlogResponse>(`/blogs/${id}`)
     .then((response) => response.data);
 }
+
+export function reorderBlog(id: string, order: number): Promise<void> {
+  return apiClient.patch(`/blogs/${id}/order`, { order }).then(() => {});
+}

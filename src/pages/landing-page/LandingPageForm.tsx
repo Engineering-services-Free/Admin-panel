@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 import { RichTextEditor } from "@/components/rich-text-editor";
+import { PersistenceRequiredIndicator } from "@/components/common/PersistenceRequiredIndicator";
 
 import type {
   CreateLandingPageInput,
@@ -137,7 +138,13 @@ export function LandingPageForm({
       {/* WHAT WE DO */}
       <section className="rounded-lg border">
         <div className="border-b p-6">
-          <h2 className="text-lg font-semibold">What We Do</h2>
+          <h2 className="text-lg font-semibold">
+            What We Do
+            <PersistenceRequiredIndicator
+              entity="landingPage"
+              field="whatWeDo"
+            />
+          </h2>
 
           <p className="mt-1 text-sm text-muted-foreground">
             Describe what the company does and its capabilities.

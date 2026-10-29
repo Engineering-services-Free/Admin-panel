@@ -5,9 +5,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 import { RichTextEditor } from "@/components/rich-text-editor";
+import { PersistenceRequiredIndicator } from "@/components/common/PersistenceRequiredIndicator";
 import { TagInput } from "@/components/common/TagInput";
 
 import { uploadImage } from "@/api/uploads.api";
+import { withGeneratedImageAlt } from "@/lib/imageAltText";
 import { useProjects } from "@/hooks/services/useProjects";
 
 import type {
@@ -278,13 +280,10 @@ export function BlogForm({
       slug: cleanSlug,
       shortDescription: shortDescription.trim(),
       overview: overview.trim(),
-      coverImage: {
-        url: coverImage.url,
-        alt: coverImage.alt.trim() || cleanTitle,
-        ...(coverImage.storagePath
-          ? { storagePath: coverImage.storagePath }
-          : {}),
-      },
+      coverImage: withGeneratedImageAlt(
+        coverImage,
+        `${cleanTitle || "Blog"} cover image`,
+      ),
       content,
       projectId,
       technologies,
@@ -570,7 +569,13 @@ export function BlogForm({
       {/* SHORT DESCRIPTION */}
       <section className="rounded-lg border">
         <div className="border-b p-6">
-          <h2 className="text-lg font-semibold">Short Description</h2>
+          <h2 className="text-lg font-semibold">
+            Short Description
+            <PersistenceRequiredIndicator
+              entity="blog"
+              field="shortDescription"
+            />
+          </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             A summary shown on blog cards.
           </p>
@@ -596,7 +601,10 @@ export function BlogForm({
       {/* OVERVIEW */}
       <section className="rounded-lg border">
         <div className="border-b p-6">
-          <h2 className="text-lg font-semibold">Overview</h2>
+          <h2 className="text-lg font-semibold">
+            Overview
+            <PersistenceRequiredIndicator entity="blog" field="overview" />
+          </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             An introduction shown before the article.
           </p>
@@ -622,7 +630,10 @@ export function BlogForm({
       {/* CONTENT */}
       <section className="rounded-lg border">
         <div className="border-b p-6">
-          <h2 className="text-lg font-semibold">Content</h2>
+          <h2 className="text-lg font-semibold">
+            Content
+            <PersistenceRequiredIndicator entity="blog" field="content" />
+          </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             The full article.
           </p>

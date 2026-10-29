@@ -7,9 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 import { RichTextEditor } from "@/components/rich-text-editor";
+import { PersistenceRequiredIndicator } from "@/components/common/PersistenceRequiredIndicator";
 import { TagInput } from "@/components/common/TagInput";
 
 import { uploadImage } from "@/api/uploads.api";
+import { withGeneratedImageAlt } from "@/lib/imageAltText";
 import { useClients } from "@/hooks/services/useClients";
 import { useServices } from "@/hooks/services/useServices";
 
@@ -338,19 +340,17 @@ export function ProjectForm({
       location: optionalText(location, Boolean(initialValues?.location)),
       shortDescription: shortDescription.trim(),
       overview,
-      heroImage: {
-        url: heroImage.url,
-        alt: heroImage.alt.trim() || cleanTitle,
-        ...(heroImage.storagePath
-          ? { storagePath: heroImage.storagePath }
-          : {}),
-      },
+      heroImage: withGeneratedImageAlt(
+        heroImage,
+        `${cleanTitle || "Project"} hero image`,
+      ),
       // The complete current gallery, not only new uploads
-      gallery: gallery.map(({ url, alt, storagePath }) => ({
-        url,
-        alt: alt.trim() || cleanTitle,
-        ...(storagePath ? { storagePath } : {}),
-      })),
+      gallery: gallery.map((image, index) =>
+        withGeneratedImageAlt(
+          image,
+          `${cleanTitle || "Project"} image ${index + 1}`,
+        ),
+      ),
       challenge,
       solution,
       engineeringScope,
@@ -626,7 +626,13 @@ export function ProjectForm({
       {/* DESCRIPTION */}
       <section className="rounded-lg border">
         <div className="border-b p-6">
-          <h2 className="text-lg font-semibold">Short Description</h2>
+          <h2 className="text-lg font-semibold">
+            Short Description
+            <PersistenceRequiredIndicator
+              entity="project"
+              field="shortDescription"
+            />
+          </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             A summary shown on project cards.
           </p>
@@ -653,6 +659,7 @@ export function ProjectForm({
       {[
         {
           title: "Overview",
+          field: "overview",
           hint: "What the project was about.",
           value: overview,
           onChange: setOverview,
@@ -660,6 +667,7 @@ export function ProjectForm({
         },
         {
           title: "Challenge",
+          field: "challenge",
           hint: "The problem the client faced.",
           value: challenge,
           onChange: setChallenge,
@@ -667,6 +675,7 @@ export function ProjectForm({
         },
         {
           title: "Solution",
+          field: "solution",
           hint: "How the problem was solved.",
           value: solution,
           onChange: setSolution,
@@ -675,7 +684,13 @@ export function ProjectForm({
       ].map((section) => (
         <section key={section.title} className="rounded-lg border">
           <div className="border-b p-6">
-            <h2 className="text-lg font-semibold">{section.title}</h2>
+            <h2 className="text-lg font-semibold">
+              {section.title}
+              <PersistenceRequiredIndicator
+                entity="project"
+                field={section.field}
+              />
+            </h2>
             <p className="mt-1 text-sm text-muted-foreground">{section.hint}</p>
           </div>
 

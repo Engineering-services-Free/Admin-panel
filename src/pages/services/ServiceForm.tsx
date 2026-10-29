@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { GripVertical } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 import { RichTextEditor } from "@/components/rich-text-editor";
+import { PersistenceRequiredIndicator } from "@/components/common/PersistenceRequiredIndicator";
 
 import { uploadImage } from "@/api/uploads.api";
+import { withGeneratedImageAlt } from "@/lib/imageAltText";
 
 import type {
   CreateServiceInput,
@@ -91,6 +94,12 @@ export function ServiceForm({
   });
 
   const [isUploadingHeroImage, setIsUploadingHeroImage] = useState(false);
+  const [draggedProcessStepIndex, setDraggedProcessStepIndex] = useState<
+    number | null
+  >(null);
+  const [dropProcessStepIndex, setDropProcessStepIndex] = useState<
+    number | null
+  >(null);
 
   const [heroImageError, setHeroImageError] = useState<string | null>(null);
 
@@ -146,6 +155,11 @@ export function ServiceForm({
 
     const cleanedValues: CreateServiceInput = {
       ...formValues,
+
+      heroImage: withGeneratedImageAlt(
+        formValues.heroImage,
+        `${formValues.title.trim() || "Service"} hero image`,
+      ),
 
       summary: formValues.summary.filter((value) => value.trim() !== ""),
 
@@ -269,10 +283,30 @@ export function ServiceForm({
     setFormValues((current) => {
       const process = [...current.process];
 
+      if (field === "step") {
+        const requestedPosition = Number(value);
+        const destinationIndex = Number.isFinite(requestedPosition)
+          ? Math.min(
+              Math.max(Math.trunc(requestedPosition) - 1, 0),
+              process.length - 1,
+            )
+          : index;
+        const [movedStep] = process.splice(index, 1);
+        process.splice(destinationIndex, 0, movedStep);
+
+        return {
+          ...current,
+          process: process.map((step, currentIndex) => ({
+            ...step,
+            step: currentIndex + 1,
+          })),
+        };
+      }
+
       process[index] = {
         ...process[index],
 
-        [field]: field === "step" ? Number(value) : value,
+        [field]: value,
       };
 
       return {
@@ -293,6 +327,32 @@ export function ServiceForm({
           step: currentIndex + 1,
         })),
     }));
+  };
+
+  const handleMoveProcessStep = (fromIndex: number, toIndex: number) => {
+    setFormValues((current) => {
+      if (
+        fromIndex < 0 ||
+        toIndex < 0 ||
+        fromIndex >= current.process.length ||
+        toIndex >= current.process.length ||
+        fromIndex === toIndex
+      ) {
+        return current;
+      }
+
+      const process = [...current.process];
+      const [movedStep] = process.splice(fromIndex, 1);
+      process.splice(toIndex, 0, movedStep);
+
+      return {
+        ...current,
+        process: process.map((step, index) => ({
+          ...step,
+          step: index + 1,
+        })),
+      };
+    });
   };
 
   /*
@@ -562,7 +622,10 @@ export function ServiceForm({
 
       <section className="rounded-lg border">
         <div className="border-b p-6">
-          <h2 className="text-lg font-semibold">Overview</h2>
+          <h2 className="text-lg font-semibold">
+            Overview
+            <PersistenceRequiredIndicator entity="service" field="overview" />
+          </h2>
 
           <p className="mt-1 text-sm text-muted-foreground">
             Provide a short overview of this service.
@@ -638,9 +701,10 @@ export function ServiceForm({
               {/* Title */}
 
               <div className="grid gap-2">
-                <Label>Title</Label>
+                <Label htmlFor={`service-capability-title-${index}`}>Title</Label>
 
                 <Input
+                  id={`service-capability-title-${index}`}
                   value={capability.title}
                   onChange={(event) =>
                     handleCapabilityChange(index, "title", event.target.value)
@@ -653,9 +717,12 @@ export function ServiceForm({
               {/* Description */}
 
               <div className="grid gap-2">
-                <Label>Description</Label>
+                <Label htmlFor={`service-capability-description-${index}`}>
+                  Description
+                </Label>
 
                 <Textarea
+                  id={`service-capability-description-${index}`}
                   value={capability.description}
                   onChange={(event) =>
                     handleCapabilityChange(
@@ -787,9 +854,60 @@ export function ServiceForm({
 
         <div className="grid gap-6 p-6">
           {formValues.process.map((processStep, index) => (
-            <div key={index} className="grid gap-4 rounded-lg border p-4">
+            <div
+              key={index}
+              draggable={!isFormSubmitting}
+              onDragStart={(event) => {
+                if (
+                  event.target instanceof Element &&
+                  event.target.closest("button, input, textarea")
+                ) {
+                  event.preventDefault();
+                  return;
+                }
+
+                event.dataTransfer.effectAllowed = "move";
+                event.dataTransfer.setData("text/plain", String(index));
+                setDraggedProcessStepIndex(index);
+              }}
+              onDragOver={(event) => {
+                if (
+                  draggedProcessStepIndex !== null &&
+                  draggedProcessStepIndex !== index
+                ) {
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = "move";
+                  setDropProcessStepIndex(index);
+                }
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                if (draggedProcessStepIndex !== null) {
+                  handleMoveProcessStep(draggedProcessStepIndex, index);
+                }
+                setDraggedProcessStepIndex(null);
+                setDropProcessStepIndex(null);
+              }}
+              onDragEnd={() => {
+                setDraggedProcessStepIndex(null);
+                setDropProcessStepIndex(null);
+              }}
+              className={`grid gap-4 rounded-lg border p-4 ${
+                draggedProcessStepIndex === index
+                  ? "opacity-50"
+                  : dropProcessStepIndex === index
+                    ? "border-primary"
+                    : ""
+              }`}
+            >
               <div className="flex items-center justify-between">
-                <h3 className="font-medium">Step {index + 1}</h3>
+                <h3 className="flex items-center gap-2 font-medium">
+                  <GripVertical
+                    className="size-4 cursor-grab text-muted-foreground active:cursor-grabbing"
+                    aria-hidden="true"
+                  />
+                  Step {index + 1}
+                </h3>
 
                 <Button
                   type="button"
@@ -805,9 +923,12 @@ export function ServiceForm({
               {/* Step Number */}
 
               <div className="grid gap-2">
-                <Label>Step Number</Label>
+                <Label htmlFor={`service-process-step-${index}`}>
+                  Step Number
+                </Label>
 
                 <Input
+                  id={`service-process-step-${index}`}
                   type="number"
                   min={1}
                   value={processStep.step}
@@ -821,9 +942,10 @@ export function ServiceForm({
               {/* Title */}
 
               <div className="grid gap-2">
-                <Label>Title</Label>
+                <Label htmlFor={`service-process-title-${index}`}>Title</Label>
 
                 <Input
+                  id={`service-process-title-${index}`}
                   value={processStep.title}
                   onChange={(event) =>
                     handleProcessChange(index, "title", event.target.value)
@@ -836,9 +958,12 @@ export function ServiceForm({
               {/* Description */}
 
               <div className="grid gap-2">
-                <Label>Description</Label>
+                <Label htmlFor={`service-process-description-${index}`}>
+                  Description
+                </Label>
 
                 <Textarea
+                  id={`service-process-description-${index}`}
                   value={processStep.description}
                   onChange={(event) =>
                     handleProcessChange(
@@ -924,9 +1049,12 @@ export function ServiceForm({
               {/* Question */}
 
               <div className="grid gap-2">
-                <Label>Question</Label>
+                <Label htmlFor={`service-faq-question-${index}`}>
+                  Question
+                </Label>
 
                 <Input
+                  id={`service-faq-question-${index}`}
                   value={faq.question}
                   onChange={(event) =>
                     handleFaqChange(index, "question", event.target.value)
@@ -939,9 +1067,10 @@ export function ServiceForm({
               {/* Answer */}
 
               <div className="grid gap-2">
-                <Label>Answer</Label>
+                <Label htmlFor={`service-faq-answer-${index}`}>Answer</Label>
 
                 <Textarea
+                  id={`service-faq-answer-${index}`}
                   value={faq.answer}
                   onChange={(event) =>
                     handleFaqChange(index, "answer", event.target.value)
@@ -972,7 +1101,10 @@ export function ServiceForm({
 
       <section className="rounded-lg border">
         <div className="border-b p-6">
-          <h2 className="text-lg font-semibold">Detailed Content</h2>
+          <h2 className="text-lg font-semibold">
+            Detailed Content
+            <PersistenceRequiredIndicator entity="service" field="detail" />
+          </h2>
 
           <p className="mt-1 text-sm text-muted-foreground">
             Add the complete detailed content for this service.
