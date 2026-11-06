@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+import { ImageUploadLabel } from "@/components/common/ImageUploadLabel";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { PersistenceRequiredIndicator } from "@/components/common/PersistenceRequiredIndicator";
 import { TagInput } from "@/components/common/TagInput";
@@ -562,7 +563,12 @@ export function ProjectForm({
 
         <div className="grid gap-6 p-6">
           <div className="grid gap-2">
-            <Label htmlFor="project-hero">Image</Label>
+            <ImageUploadLabel
+              htmlFor="project-hero"
+              label="Image"
+              pixelSize="1920 × 1200"
+              millimeterSize="508 × 317.5"
+            />
             <Input
               id="project-hero"
               type="file"
@@ -873,7 +879,12 @@ export function ProjectForm({
 
         <div className="grid gap-6 p-6">
           <div className="grid gap-2">
-            <Label htmlFor="project-gallery">Add images</Label>
+            <ImageUploadLabel
+              htmlFor="project-gallery"
+              label="Add images"
+              pixelSize="1600 × 1200"
+              millimeterSize="423.33 × 317.5"
+            />
             <Input
               id="project-gallery"
               type="file"

@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+import { ImageUploadLabel } from "@/components/common/ImageUploadLabel";
 import { uploadImage } from "@/api/uploads.api";
 import { withGeneratedImageAlt } from "@/lib/imageAltText";
 
@@ -167,7 +168,12 @@ export function ClientForm({
 
         <div className="grid gap-6 p-6">
           <div className="grid gap-2">
-            <Label htmlFor="client-image">Image</Label>
+            <ImageUploadLabel
+              htmlFor="client-image"
+              label="Image"
+              pixelSize="800 × 400"
+              millimeterSize="211.67 × 105.83"
+            />
 
             <Input
               id="client-image"

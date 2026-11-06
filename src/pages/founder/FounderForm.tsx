@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label"; 
 
+import { ImageUploadLabel } from "@/components/common/ImageUploadLabel";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { PersistenceRequiredIndicator } from "@/components/common/PersistenceRequiredIndicator";
 
@@ -220,7 +221,12 @@ export function FounderForm({
 
         <div className="grid gap-6 p-6">
           <div className="grid gap-2">
-            <Label htmlFor="founder-image">Image</Label>
+            <ImageUploadLabel
+              htmlFor="founder-image"
+              label="Image"
+              pixelSize="1200 × 1500"
+              millimeterSize="317.5 × 396.88"
+            />
 
             <Input
               id="founder-image"
