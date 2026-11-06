@@ -1,7 +1,7 @@
 import {
   isPersistenceFieldRequired,
   type PersistenceEntity,
-} from "../../../Api-processor/src/persistance/required-fields";
+} from "@/lib/requiredPersistenceFields";
 
 const labelFields: Record<
   string,

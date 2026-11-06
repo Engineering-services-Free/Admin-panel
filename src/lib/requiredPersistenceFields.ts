@@ -1,0 +1,92 @@
+export const requiredPersistenceFields = {
+  about: [
+    "heroImage",
+    "heroImage.url",
+    "heroImage.alt",
+    "overview",
+    "aboutUs",
+  ],
+  blog: [
+    "title",
+    "slug",
+    "shortDescription",
+    "overview",
+    "coverImage",
+    "coverImage.url",
+    "coverImage.alt",
+    "content",
+    "projectId",
+    "readingTime",
+  ],
+  client: ["name", "image", "image.url", "image.alt", "industry"],
+  contact: [
+    "contactNumber1",
+    "whatsappNumber",
+    "email",
+    "location",
+    "location.mapUrl",
+    "socialMedia.platform",
+    "socialMedia.url",
+  ],
+  document: [
+    "title",
+    "type",
+    "file",
+    "file.url",
+    "file.storagePath",
+    "visibility",
+  ],
+  founder: [
+    "name",
+    "image",
+    "image.url",
+    "image.alt",
+    "overview",
+    "experience",
+    "order",
+  ],
+  landingPage: ["hero", "hero.title", "whatWeDo"],
+  project: [
+    "title",
+    "slug",
+    "clientId",
+    "industry",
+    "shortDescription",
+    "overview",
+    "heroImage",
+    "heroImage.url",
+    "heroImage.alt",
+    "challenge",
+    "solution",
+    "year",
+  ],
+  service: [
+    "title",
+    "slug",
+    "shortDescription",
+    "heroImage",
+    "heroImage.url",
+    "heroImage.alt",
+    "overview",
+    "detail",
+    "capabilities.title",
+    "capabilities.description",
+    "process.step",
+    "process.title",
+    "process.description",
+    "faqs.question",
+    "faqs.answer",
+  ],
+  auth: ["email", "password", "currentPassword", "newPassword"],
+} as const satisfies Record<string, readonly string[]>;
+
+export type PersistenceEntity = keyof typeof requiredPersistenceFields;
+
+export function isPersistenceFieldRequired(
+  entity: PersistenceEntity,
+  field: string,
+): boolean {
+  return (requiredPersistenceFields[entity] as readonly string[]).includes(
+    field,
+  );
+}

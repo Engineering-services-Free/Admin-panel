@@ -1,5 +1,5 @@
 import { isRequiredPersistenceField } from "@/lib/persistenceFieldLabels";
-import type { PersistenceEntity } from "../../../../Api-processor/src/persistance/required-fields";
+import type { PersistenceEntity } from "@/lib/requiredPersistenceFields";
 
 interface PersistenceRequiredIndicatorProps {
   entity: PersistenceEntity;
