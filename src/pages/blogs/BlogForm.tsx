@@ -111,6 +111,9 @@ export function BlogForm({
   const [overview, setOverview] = useState(initialValues?.overview ?? "");
   const [content, setContent] = useState(initialValues?.content ?? "");
 
+  const [cardImage, setCardImage] = useState<BlogImage>(
+    initialValues?.cardImage ?? { url: "", alt: "" },
+  );
   const [coverImage, setCoverImage] = useState<BlogImage>(
     initialValues?.coverImage ?? { url: "", alt: "" },
   );
@@ -150,6 +153,7 @@ export function BlogForm({
   );
 
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [cardError, setCardError] = useState<string | null>(null);
   const [coverError, setCoverError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -175,6 +179,27 @@ export function BlogForm({
 
     if (!readingTouched) {
       setReadingTimeInput(String(estimateReadingTime(value)));
+    }
+  };
+
+  const handleCardUpload = async (file: File) => {
+    try {
+      setCardError(null);
+      setIsUploadingImage(true);
+
+      const uploaded = await uploadImage(file, "blogs");
+
+      setCardImage((current) => ({
+        url: uploaded.url,
+        storagePath: uploaded.storagePath,
+        alt: current.alt,
+      }));
+    } catch (error) {
+      setCardError(
+        error instanceof Error ? error.message : "Failed to upload card image.",
+      );
+    } finally {
+      setIsUploadingImage(false);
     }
   };
 
@@ -281,6 +306,12 @@ export function BlogForm({
       slug: cleanSlug,
       shortDescription: shortDescription.trim(),
       overview: overview.trim(),
+      cardImage: cardImage.url
+        ? withGeneratedImageAlt(
+            cardImage,
+            `${cleanTitle || "Blog"} card image`,
+          )
+        : undefined,
       coverImage: withGeneratedImageAlt(
         coverImage,
         `${cleanTitle || "Blog"} cover image`,
@@ -487,12 +518,92 @@ export function BlogForm({
         </div>
       </section>
 
+      {/* CARD IMAGE */}
+      <section className="rounded-lg border">
+        <div className="border-b p-6">
+          <h2 className="text-lg font-semibold">Card Image</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Upload an image for blog listing cards and preview sections.
+          </p>
+        </div>
+
+        <div className="grid gap-6 p-6">
+          <div className="grid gap-2">
+            <ImageUploadLabel
+              htmlFor="blog-card"
+              label="Card Image"
+              pixelSize="1920 × 1200"
+              millimeterSize="508 × 317.5"
+            />
+            <Input
+              id="blog-card"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              disabled={isFormDisabled}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+
+                if (!file) {
+                  return;
+                }
+
+                void handleCardUpload(file);
+
+                event.target.value = "";
+              }}
+            />
+            <p className="text-xs text-muted-foreground">
+              JPG, PNG, WEBP or GIF. Maximum 5 MB.
+            </p>
+          </div>
+
+          {cardError && (
+            <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3">
+              <p className="text-sm text-destructive">{cardError}</p>
+            </div>
+          )}
+
+          {isUploadingImage && (
+            <div className="rounded-md border p-4">
+              <p className="text-sm text-muted-foreground">Uploading image...</p>
+            </div>
+          )}
+
+          {cardImage.url && (
+            <div className="overflow-hidden rounded-lg border">
+              <img
+                src={cardImage.url}
+                alt={cardImage.alt || "Card image"}
+                className="h-72 w-full object-cover"
+              />
+            </div>
+          )}
+
+          <div className="grid gap-2">
+            <Label htmlFor="blog-card-alt">Alt Text</Label>
+            <Input
+              id="blog-card-alt"
+              value={cardImage.alt}
+              onChange={(event) =>
+                setCardImage((current) => ({
+                  ...current,
+                  alt: event.target.value,
+                }))
+              }
+              placeholder="Describe the image"
+              maxLength={200}
+              disabled={isFormDisabled}
+            />
+          </div>
+        </div>
+      </section>
+
       {/* COVER IMAGE */}
       <section className="rounded-lg border">
         <div className="border-b p-6">
-          <h2 className="text-lg font-semibold">Cover Image</h2>
+          <h2 className="text-lg font-semibold">Banner Image</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            The main image for this blog.
+            The main banner image for this blog detail page.
           </p>
         </div>
 
@@ -500,7 +611,7 @@ export function BlogForm({
           <div className="grid gap-2">
             <ImageUploadLabel
               htmlFor="blog-cover"
-              label="Image"
+              label="Banner Image"
               pixelSize="1920 × 1200"
               millimeterSize="508 × 317.5"
             />

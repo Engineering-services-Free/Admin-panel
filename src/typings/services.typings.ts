@@ -36,6 +36,7 @@ export interface Service {
   tagline?: string;
   shortDescription: string;
 
+  cardImage?: ServiceImage;
   heroImage: ServiceImage;
 
   summary: string[];
@@ -69,6 +70,7 @@ export interface CreateServiceInput {
   tagline?: string;
   shortDescription: string;
 
+  cardImage?: ServiceImage;
   heroImage: ServiceImage;
 
   summary: string[];

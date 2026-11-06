@@ -17,6 +17,7 @@ import type {
   CreateServiceInput,
   ServiceCapability,
   ServiceFaq,
+  ServiceImage,
   ServiceProcessStep,
 } from "@/typings/services.typings";
 
@@ -28,11 +29,22 @@ interface ServiceFormProps {
   onSubmit: (values: CreateServiceInput) => void; 
 }
 
+const normalizeImage = (image?: Partial<ServiceImage>): ServiceImage => ({
+  url: image?.url ?? "",
+  alt: image?.alt ?? "",
+  ...(image?.storagePath ? { storagePath: image.storagePath } : {}),
+});
+
 const DEFAULT_VALUES: CreateServiceInput = {
   title: "",
   slug: "",
   tagline: "",
   shortDescription: "",
+
+  cardImage: {
+    url: "",
+    alt: "",
+  },
 
   heroImage: {
     url: "",
@@ -83,10 +95,9 @@ export function ServiceForm({
     ...DEFAULT_VALUES,
     ...initialValues,
 
-    heroImage: {
-      ...DEFAULT_VALUES.heroImage,
-      ...initialValues?.heroImage,
-    },
+    cardImage: normalizeImage(initialValues?.cardImage),
+
+    heroImage: normalizeImage(initialValues?.heroImage),
 
     seo: {
       ...DEFAULT_VALUES.seo,
@@ -94,6 +105,7 @@ export function ServiceForm({
     },
   });
 
+  const [isUploadingCardImage, setIsUploadingCardImage] = useState(false);
   const [isUploadingHeroImage, setIsUploadingHeroImage] = useState(false);
   const [draggedProcessStepIndex, setDraggedProcessStepIndex] = useState<
     number | null
@@ -102,6 +114,7 @@ export function ServiceForm({
     number | null
   >(null);
 
+  const [cardImageError, setCardImageError] = useState<string | null>(null);
   const [heroImageError, setHeroImageError] = useState<string | null>(null);
 
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(
@@ -124,6 +137,31 @@ export function ServiceForm({
       title,
       slug: slugManuallyEdited ? current.slug : generateSlug(title),
     }));
+  };
+
+  const handleCardImageUpload = async (file: File) => {
+    try {
+      setCardImageError(null);
+      setIsUploadingCardImage(true);
+
+      const uploadedImage = await uploadImage(file, "services");
+
+      setFormValues((current) => ({
+        ...current,
+
+        cardImage: {
+          url: uploadedImage.url,
+          storagePath: uploadedImage.storagePath,
+          alt: current.cardImage?.alt ?? "",
+        },
+      }));
+    } catch (error) {
+      setCardImageError(
+        error instanceof Error ? error.message : "Failed to upload card image.",
+      );
+    } finally {
+      setIsUploadingCardImage(false);
+    }
   };
 
   const handleHeroImageUpload = async (file: File) => {
@@ -156,6 +194,13 @@ export function ServiceForm({
 
     const cleanedValues: CreateServiceInput = {
       ...formValues,
+
+      cardImage: formValues.cardImage?.url
+        ? withGeneratedImageAlt(
+            formValues.cardImage,
+            `${formValues.title.trim() || "Service"} card image`,
+          )
+        : undefined,
 
       heroImage: withGeneratedImageAlt(
         formValues.heroImage,
@@ -202,7 +247,7 @@ export function ServiceForm({
     onSubmit(cleanedValues);
   };
 
-  const isFormSubmitting = isSubmitting || isUploadingHeroImage;
+  const isFormSubmitting = isSubmitting || isUploadingCardImage || isUploadingHeroImage;
 
   /*
    * --------------------------------------------------
@@ -511,15 +556,111 @@ export function ServiceForm({
       </section>
 
       {/* ======================================================
+          CARD IMAGE
+      ====================================================== */}
+
+      <section className="rounded-lg border">
+        <div className="border-b p-6">
+          <h2 className="text-lg font-semibold">Card Image</h2>
+
+          <p className="mt-1 text-sm text-muted-foreground">
+            Upload an image specifically for service listing cards and preview sections.
+          </p>
+        </div>
+
+        <div className="grid gap-6 p-6">
+          <div className="grid gap-2">
+            <ImageUploadLabel
+              htmlFor="service-card-image"
+              label="Card Image"
+              pixelSize="1600 × 2000"
+              millimeterSize="423.33 × 529.17"
+            />
+
+            <Input
+              id="service-card-image"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              disabled={isFormSubmitting}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+
+                if (!file) {
+                  return;
+                }
+
+                void handleCardImageUpload(file);
+
+                event.target.value = "";
+              }}
+            />
+
+            <p className="text-xs text-muted-foreground">
+              JPG, PNG, WEBP or GIF. Maximum 5 MB.
+            </p>
+          </div>
+
+          {cardImageError && (
+            <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3">
+              <p className="text-sm text-destructive">{cardImageError}</p>
+            </div>
+          )}
+
+          {isUploadingCardImage && (
+            <div className="rounded-md border p-4">
+              <p className="text-sm text-muted-foreground">Uploading card image...</p>
+            </div>
+          )}
+
+          {formValues.cardImage?.url && (
+            <div className="grid gap-4">
+              <div className="overflow-hidden rounded-lg border">
+                <img
+                  src={formValues.cardImage.url}
+                  alt={formValues.cardImage.alt || formValues.title || "Service card image"}
+                  className="h-64 w-full object-cover"
+                />
+              </div>
+
+              <p className="break-all text-xs text-muted-foreground">
+                {formValues.cardImage.storagePath}
+              </p>
+            </div>
+          )}
+
+          <div className="grid gap-2">
+            <Label htmlFor="service-card-alt">Alt Text</Label>
+
+            <Input
+              id="service-card-alt"
+              value={formValues.cardImage?.alt ?? ""}
+              onChange={(event) =>
+                setFormValues((current) => ({
+                  ...current,
+
+                  cardImage: {
+                    ...(current.cardImage ?? { url: "", alt: "" }),
+                    alt: event.target.value,
+                  },
+                }))
+              }
+              placeholder="Describe the image"
+              disabled={isFormSubmitting}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ======================================================
           HERO IMAGE
       ====================================================== */}
 
       <section className="rounded-lg border">
         <div className="border-b p-6">
-          <h2 className="text-lg font-semibold">Hero Image</h2>
+          <h2 className="text-lg font-semibold">Banner Image</h2>
 
           <p className="mt-1 text-sm text-muted-foreground">
-            Upload the main image for this service.
+            Upload the main banner image for this service detail page.
           </p>
         </div>
 
@@ -529,9 +670,9 @@ export function ServiceForm({
           <div className="grid gap-2">
             <ImageUploadLabel
               htmlFor="service-hero-image"
-              label="Image"
-              pixelSize="1600 × 2000"
-              millimeterSize="423.33 × 529.17"
+              label="Banner Image"
+              pixelSize="1920 × 1200"
+              millimeterSize="508 × 317.5"
             />
 
             <Input

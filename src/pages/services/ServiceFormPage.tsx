@@ -146,6 +146,7 @@ export function ServiceFormPage() {
         slug: service.slug,
         tagline: service.tagline,
         shortDescription: service.shortDescription,
+        cardImage: service.cardImage,
         heroImage: service.heroImage,
         summary: service.summary,
         overview: service.overview,
