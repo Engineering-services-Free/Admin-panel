@@ -21,6 +21,7 @@ export interface Blog {
   shortDescription: string;
   overview: string;
 
+  cardImage?: BlogImage;
   coverImage: BlogImage;
 
   content: string;
@@ -51,6 +52,7 @@ export interface CreateBlogInput {
   shortDescription: string;
   overview: string;
 
+  cardImage?: BlogImage;
   coverImage: BlogImage;
 
   content: string;

@@ -31,6 +31,7 @@ export interface Project {
   shortDescription: string;
   overview: string;
 
+  cardImage?: ProjectImage;
   heroImage: ProjectImage;
   gallery: ProjectImage[];
 
@@ -68,6 +69,7 @@ export interface CreateProjectInput {
   shortDescription: string;
   overview: string;
 
+  cardImage?: ProjectImage;
   heroImage: ProjectImage;
   gallery: ProjectImage[];
 

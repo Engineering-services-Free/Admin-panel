@@ -106,6 +106,9 @@ export function ProjectForm({
   const [challenge, setChallenge] = useState(initialValues?.challenge ?? "");
   const [solution, setSolution] = useState(initialValues?.solution ?? "");
 
+  const [cardImage, setCardImage] = useState<ProjectImage>(
+    initialValues?.cardImage ?? { url: "", alt: "" },
+  );
   const [heroImage, setHeroImage] = useState<ProjectImage>(
     initialValues?.heroImage ?? { url: "", alt: "" },
   );
@@ -139,6 +142,7 @@ export function ProjectForm({
   );
 
   const [uploadCount, setUploadCount] = useState(0);
+  const [cardError, setCardError] = useState<string | null>(null);
   const [heroError, setHeroError] = useState<string | null>(null);
   const [galleryError, setGalleryError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -171,6 +175,24 @@ export function ProjectForm({
       return await uploadImage(file, "projects");
     } finally {
       setUploadCount((count) => count - 1);
+    }
+  };
+
+  const handleCardUpload = async (file: File) => {
+    try {
+      setCardError(null);
+
+      const uploaded = await uploadOne(file);
+
+      setCardImage((current) => ({
+        url: uploaded.url,
+        storagePath: uploaded.storagePath,
+        alt: current.alt,
+      }));
+    } catch (error) {
+      setCardError(
+        error instanceof Error ? error.message : "Failed to upload card image.",
+      );
     }
   };
 
@@ -341,6 +363,12 @@ export function ProjectForm({
       location: optionalText(location, Boolean(initialValues?.location)),
       shortDescription: shortDescription.trim(),
       overview,
+      cardImage: cardImage.url
+        ? withGeneratedImageAlt(
+            cardImage,
+            `${cleanTitle || "Project"} card image`,
+          )
+        : undefined,
       heroImage: withGeneratedImageAlt(
         heroImage,
         `${cleanTitle || "Project"} hero image`,
@@ -552,12 +580,86 @@ export function ProjectForm({
         </div>
       </section>
 
-      {/* HERO IMAGE */}
+      {/* CARD IMAGE */}
       <section className="rounded-lg border">
         <div className="border-b p-6">
-          <h2 className="text-lg font-semibold">Hero Image</h2>
+          <h2 className="text-lg font-semibold">Card Image</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            The main image for this project.
+            Upload an image for project listing cards and preview sections.
+          </p>
+        </div>
+
+        <div className="grid gap-6 p-6">
+          <div className="grid gap-2">
+            <ImageUploadLabel
+              htmlFor="project-card"
+              label="Card Image"
+              pixelSize="1920 × 1200"
+              millimeterSize="508 × 317.5"
+            />
+            <Input
+              id="project-card"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              disabled={isFormDisabled}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+
+                if (!file) {
+                  return;
+                }
+
+                void handleCardUpload(file);
+
+                event.target.value = "";
+              }}
+            />
+            <p className="text-xs text-muted-foreground">
+              JPG, PNG, WEBP or GIF. Maximum 5 MB.
+            </p>
+          </div>
+
+          {cardError && (
+            <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3">
+              <p className="text-sm text-destructive">{cardError}</p>
+            </div>
+          )}
+
+          {cardImage.url && (
+            <div className="overflow-hidden rounded-lg border">
+              <img
+                src={cardImage.url}
+                alt={cardImage.alt || "Card image"}
+                className="h-72 w-full object-cover"
+              />
+            </div>
+          )}
+
+          <div className="grid gap-2">
+            <Label htmlFor="project-card-alt">Alt Text</Label>
+            <Input
+              id="project-card-alt"
+              value={cardImage.alt}
+              onChange={(event) =>
+                setCardImage((current) => ({
+                  ...current,
+                  alt: event.target.value,
+                }))
+              }
+              placeholder="Describe the image"
+              maxLength={200}
+              disabled={isFormDisabled}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* BANNER IMAGE */}
+      <section className="rounded-lg border">
+        <div className="border-b p-6">
+          <h2 className="text-lg font-semibold">Banner Image</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            The main banner image for this project detail page.
           </p>
         </div>
 
@@ -565,7 +667,7 @@ export function ProjectForm({
           <div className="grid gap-2">
             <ImageUploadLabel
               htmlFor="project-hero"
-              label="Image"
+              label="Banner Image"
               pixelSize="1920 × 1200"
               millimeterSize="508 × 317.5"
             />
